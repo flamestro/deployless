@@ -1,7 +1,7 @@
 # Deployless
 Deployless is inspired by the Serverless framework and allows to deploy functions on Serverless Environments with strong focus on python and Openwhisk.
 
-Deployless exists mainly because I missed the functionality to deploy python actions that need a virtual environment.
+Deployless exists mainly because I missed the functionality to deploy python actions that need a virtual environment or custom dependencies.
 
 # Supported Platforms
 - OpenWhisk

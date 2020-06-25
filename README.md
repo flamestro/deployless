@@ -42,10 +42,19 @@ actions:
     main: src/testfunctions/requirements-test/requirements-test.py
     kind: python:3
 ```
+The dependencies keyword allows you to add a list of python files that are coupled to this action. They will be uploaded with this action and it will be able to access them. For the example of `hello-world` this happens by using `import someutil`.
+If you want to test the function locally you can use the following:
+
+```
+try:
+    import someutil
+except ImportError:
+    import src.utils.someutil
+```
 
 The minimal configuration is currently a provider containing platform, api-host, auth.
 
-The minimal configuration for an action is currently the main file and the kind.
+The minimal configuration for an action is currently the main file, containing a main method, and the kind.
 
 # Usage
 Run `deployless` in your project root to deploy your actions

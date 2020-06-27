@@ -62,7 +62,8 @@ Run `deployless` in your project root to deploy your actions
 Run `deployless --run <action_name>` to invoke a action and get its results
 
 Run `deployless --clear` to delete all actions that are configured in your `deployless.yaml` 
-###Missing Features
+
+### Missing Features
 - actions
     - timeout configuration
     - memory configuration
@@ -72,7 +73,7 @@ Run `deployless --clear` to delete all actions that are configured in your `depl
     - functionality to create projects using `--init`
 - tests :) 
 
-###Known issues
+### Known issues
 - sometimes the actions are deployed but are not returning binaries (edge case)
     - here you can just deploy again and it should work 
 - Virtual environments for python actions is created and not removeable without sudo rights since it is created by a docker container to be compatible with openwhisk

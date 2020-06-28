@@ -23,6 +23,8 @@ except ImportError:
 # OpenWhisk Url's
 local_url = 'https://{0}/api/v1/namespaces/_/actions/{1}'
 web_url = 'https://{0}/api/v1/web/_/default/{1}'
+log_url = 'https://{0}/api/v1/namespaces/_/activations/{1}/logs'
+activations_url = 'https://{0}/api/v1/namespaces/_/activations'
 
 
 # Read User Config
@@ -153,6 +155,26 @@ def openwhisk_run(action_name):
     print(response.json()['response']['result'])
 
 
+def openwhisk_logs(action_name):
+    attributes = ['-b', '-r']
+    if 'ignore-certs' in provider.keys():
+        if provider['ignore-certs'] is True:
+            attributes.append('-i')
+    print("test")
+    print(api_host)
+    response = requests.get(activations_url.format(api_host),
+                            auth=(username, password),
+                            verify=not ('-i' in attributes),
+                            json={"name": str(action_name)})
+    print(response.json()[1])
+    activation_id = response.json()[1]["activationId"]
+    print(activation_id)
+    response = requests.get(log_url.format(api_host, activation_id),
+                            auth=(username, password),
+                            verify=not ('-i' in attributes))
+    print(response.json()['logs'])
+
+
 def main():
     # OpenWhisk specific behaviour
     if deploy_config['provider']['platform'] == 'openwhisk':
@@ -161,6 +183,8 @@ def main():
             openwhisk_clear()
         elif '--run' in arguments:
             openwhisk_run(arguments[arguments.index('--run') + 1])
+        elif '--logs' in arguments:
+            openwhisk_logs(arguments[arguments.index('--logs') + 1])
         else:
             openwhisk_deployment()
 

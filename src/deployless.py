@@ -79,11 +79,12 @@ def openwhisk_deployment():
 
             shutil.copyfile(action_requirements, 'build/requirements.txt')
             os.system(
-                'cd build && docker run --rm -v "$PWD:/tmp" openwhisk/python3action bash -c \
+                'docker run --rm -v "$PWD/build:/tmp" --user $(id -u):$(id -g) '
+                'openwhisk/python3action bash -c \
                 "cd tmp && \
                  virtualenv virtualenv && \
                  source virtualenv/bin/activate && \
-                 pip install -r requirements.txt" > /dev/null'.format(action_requirements))
+                 pip install -r requirements.txt"'.format(action_requirements))
             # Needs some time so that deployment does not need to be triggered 2 times
             time.sleep(5)
             os.remove('build/requirements.txt')
@@ -124,6 +125,8 @@ def openwhisk_deployment():
             print(response)
         os.remove('__main__.py')
         os.remove('build/{0}.zip'.format(action_name))
+        if 'requirements' in action_config.keys():
+            shutil.rmtree('build/virtualenv')
 
 
 def openwhisk_clear():

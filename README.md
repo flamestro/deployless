@@ -77,4 +77,3 @@ Run `deployless --clear` to delete all actions that are configured in your `depl
 ### Known issues
 - sometimes the actions are deployed but are not returning binaries (edge case)
     - here you can just deploy again and it should work 
-- Virtual environments for python actions is created and not removeable without sudo rights since it is created by a docker container to be compatible with openwhisk

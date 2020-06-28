@@ -28,7 +28,7 @@ activations_url = 'https://{0}/api/v1/namespaces/_/activations'
 
 
 # Read User Config
-with open('../deployless.yaml', "r") as f:
+with open('deployless.yaml', "r") as f:
     raw = f.read()
     deploy_config = load(raw, Loader=Loader)
     actions = deploy_config['actions']
@@ -91,7 +91,7 @@ def openwhisk_deployment():
         print('Dependencies are: ' + str(dependencies))
 
         # Deployment of Action
-        shutil.copyfile(action_path, '../__main__.py')
+        shutil.copyfile(action_path, '__main__.py')
         zipped_code = ZipFile('build/{}.zip'.format(action_name), 'w')
         for dependency in dependencies:
             zipped_code.write(dependency)
@@ -122,7 +122,7 @@ def openwhisk_deployment():
             print('Deployed : {} \n'.format(action_name))
         else:
             print(response)
-        os.remove('../__main__.py')
+        os.remove('__main__.py')
         os.remove('build/{0}.zip'.format(action_name))
 
 
@@ -160,15 +160,11 @@ def openwhisk_logs(action_name):
     if 'ignore-certs' in provider.keys():
         if provider['ignore-certs'] is True:
             attributes.append('-i')
-    print("test")
-    print(api_host)
     response = requests.get(activations_url.format(api_host),
                             auth=(username, password),
                             verify=not ('-i' in attributes),
                             json={"name": str(action_name)})
-    print(response.json()[1])
     activation_id = response.json()[1]["activationId"]
-    print(activation_id)
     response = requests.get(log_url.format(api_host, activation_id),
                             auth=(username, password),
                             verify=not ('-i' in attributes))
@@ -192,5 +188,5 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except:
-        print("Could not connect to platform")
+    except Exception as e:
+        print("Could not connect to platform" + str(e))

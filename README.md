@@ -15,6 +15,7 @@ Deployless exists mainly because I missed the functionality to deploy python act
 
 # Setup
 - clone the repository and move the `src/deployless.py` file to your `$PATH` using `mv src/deployless.py $PATH/deployless`
+- Example for Ubuntu: `sudo cp deployless.py /usr/local/bin/deployless`
 - in your project root create a `deployless.yaml` 
 
 This is the configuration file of your deployless project. 

@@ -1,7 +1,7 @@
 # Deployless
 Deployless is inspired by the Serverless framework and allows to deploy functions on Serverless Environments with strong focus on python and Openwhisk.
 
-Deployless exists mainly because I missed the functionality to deploy python actions that need a virtual environment.
+Deployless exists mainly because I missed the functionality to deploy python actions that need a virtual environment or custom dependencies.
 
 # Supported Platforms
 - OpenWhisk
@@ -42,10 +42,19 @@ actions:
     main: src/testfunctions/requirements-test/requirements-test.py
     kind: python:3
 ```
+The dependencies keyword allows you to add a list of python files that are coupled to this action. They will be uploaded with this action and it will be able to access them. For the example of `hello-world` this happens by using `import someutil`.
+If you want to test the function locally you can use the following:
+
+```
+try:
+    import someutil
+except ImportError:
+    import src.utils.someutil
+```
 
 The minimal configuration is currently a provider containing platform, api-host, auth.
 
-The minimal configuration for an action is currently the main file and the kind.
+The minimal configuration for an action is currently the main file, containing a main method, and the kind.
 
 # Usage
 Run `deployless` in your project root to deploy your actions
@@ -53,7 +62,8 @@ Run `deployless` in your project root to deploy your actions
 Run `deployless --run <action_name>` to invoke a action and get its results
 
 Run `deployless --clear` to delete all actions that are configured in your `deployless.yaml` 
-###Missing Features
+
+### Missing Features
 - actions
     - timeout configuration
     - memory configuration
@@ -63,7 +73,7 @@ Run `deployless --clear` to delete all actions that are configured in your `depl
     - functionality to create projects using `--init`
 - tests :) 
 
-###Known issues
+### Known issues
 - sometimes the actions are deployed but are not returning binaries (edge case)
     - here you can just deploy again and it should work 
 - Virtual environments for python actions is created and not removeable without sudo rights since it is created by a docker container to be compatible with openwhisk

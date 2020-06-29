@@ -140,7 +140,7 @@ def openwhisk_deployment():
         if 'web' in sequence_config.keys():
             if sequence_config['web'] is True:
                 web = True
-        print("Components are : " + sequence_config["components"])
+        print("Components are : " + str(sequence_config["components"]))
         requests.put(local_url.format(api_host, sequence_name),
                      auth=(username, password),
                      params={"overwrite": "true"},

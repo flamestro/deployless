@@ -42,6 +42,10 @@ actions:
     requirements: src/testfunctions/requirements-test/requirements.txt
     main: src/testfunctions/requirements-test/requirements-test.py
     kind: python:3
+
+sequences:
+  update:
+    components: [/guest/hello-world, /guest/requirements-action]
 ```
 The dependencies keyword allows you to add a list of python files that are coupled to this action. They will be uploaded with this action and it will be able to access them. For the example of `hello-world` this happens by using `import someutil`.
 If you want to test the function locally you can use the following:

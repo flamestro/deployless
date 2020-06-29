@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-import io
-import logging
 import os
 import shutil
 import sys
 import time
-import zipfile
 from pathlib import Path
 
 import requests
@@ -31,6 +28,7 @@ with open('deployless.yaml', "r") as f:
     raw = f.read()
     deploy_config = load(raw, Loader=Loader)
     actions = deploy_config['actions']
+    sequences = deploy_config.get('sequences', {})
     provider = deploy_config['provider']
     username = provider['auth'].split(':')[0]
     password = provider['auth'].split(':')[1]
@@ -126,6 +124,41 @@ def openwhisk_deployment():
             print(response)
         os.remove('build/{0}.zip'.format(action_name))
         shutil.rmtree("build/{}".format(action_name))
+    for sequence_name in sequences.keys():
+        attributes = []
+        sequence_config = sequences[sequence_name]
+        web = False
+        print("Started deployment of Sequence: " + sequence_name)
+
+        # -------------- READ ATTRIBUTES --------------
+        # Add Ignore Certs Attribute if specified in provider
+        if 'ignore-certs' in provider.keys():
+            if provider['ignore-certs'] is True:
+                attributes.append('-i')
+
+        # Check if Action is Web Action
+        if 'web' in sequence_config.keys():
+            if sequence_config['web'] is True:
+                web = True
+        print("Components are : " + sequence_config["components"])
+        requests.put(local_url.format(api_host, sequence_name),
+                     auth=(username, password),
+                     params={"overwrite": "true"},
+                     verify=not ('-i' in attributes),
+                     headers={'Content-type': 'application/json'},
+                     json={
+                         'name': sequence_name,
+                         'namespace': '_',
+                         'exec': {
+                             'kind': "sequence",
+                             'components': sequence_config["components"]
+                         },
+                         'annotations': [
+                             {"key": "web-export", "value": web},
+                             {"key": "raw-http", "value": False},
+                             {"key": "final", "value": True}
+                         ]
+                     })
 
 
 def openwhisk_clear():

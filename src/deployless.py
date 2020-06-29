@@ -179,10 +179,17 @@ def openwhisk_run(action_name):
     if 'ignore-certs' in provider.keys():
         if provider['ignore-certs'] is True:
             attributes.append('-i')
-    # Check if Action is Web Action
-    if 'web' in actions[action_name].keys():
-        if actions[action_name]['web'] is True:
-            run_url = web_url
+
+    try:
+        # Check if Action is Web Action
+        if 'web' in actions[action_name].keys():
+            if actions[action_name]['web'] is True:
+                run_url = web_url
+    except:
+        # Check if Sequence is Web Action
+        if 'web' in sequences[action_name].keys():
+            if sequences[action_name]['web'] is True:
+                run_url = web_url
     response = requests.post(run_url.format(api_host, action_name),
                              auth=(username, password),
                              params={"blocking": "true", 'response': 'true'},

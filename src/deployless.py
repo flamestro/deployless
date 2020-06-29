@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-
+import io
+import logging
 import os
 import shutil
 import sys
 import time
+import zipfile
 from pathlib import Path
-from zipfile import ZipFile
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -19,13 +20,11 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-
 # OpenWhisk Url's
 local_url = 'https://{0}/api/v1/namespaces/_/actions/{1}'
 web_url = 'https://{0}/api/v1/web/_/default/{1}'
 log_url = 'https://{0}/api/v1/namespaces/_/activations/{1}/logs'
 activations_url = 'https://{0}/api/v1/namespaces/_/activations'
-
 
 # Read User Config
 with open('deployless.yaml', "r") as f:
@@ -49,9 +48,10 @@ def openwhisk_deployment():
     Path("build").mkdir(parents=True, exist_ok=True)
     # iterate over specified actions
     for action_name in actions.keys():
+        Path("build/{}".format(action_name)).mkdir(parents=True, exist_ok=True)
         action_config = actions[action_name]
         action_path = action_config['main']
-        dependencies = ['__main__.py']
+        dependencies = ['build/__main__.py']
         attributes = []
         web = False
         print("Started deployment of " + action_name)
@@ -74,29 +74,30 @@ def openwhisk_deployment():
 
         # If Action has Custom Requirements Create a Virtual Environment
         if 'requirements' in action_config.keys():
-            dependencies.append('build/virtualenv')
+            dependencies.append("build/{}/virtualenv".format(action_name))
             action_requirements = action_config['requirements']
 
-            shutil.copyfile(action_requirements, 'build/requirements.txt')
+            shutil.copyfile(action_requirements, 'build/{}/requirements.txt'.format(action_name))
             os.system(
-                'docker run --rm -v "$PWD/build:/tmp" --user $(id -u):$(id -g) '
+                'docker run --rm -v "$PWD/build/{}/:/tmp" '
+                '--user $(id -u):$(id -g) '
                 'openwhisk/python3action bash -c \
                 "cd tmp && \
                  virtualenv virtualenv && \
                  source virtualenv/bin/activate && \
-                 pip install -r requirements.txt"'.format(action_requirements))
+                 pip3 install -r requirements.txt" > /dev/null'.format(action_name))
             # Needs some time so that deployment does not need to be triggered 2 times
             time.sleep(5)
-            os.remove('build/requirements.txt')
+            os.remove('build/{}/requirements.txt'.format(action_name))
         print('Attributes are: ' + str(attributes))
         print('Dependencies are: ' + str(dependencies))
 
         # Deployment of Action
-        shutil.copyfile(action_path, '__main__.py')
-        zipped_code = ZipFile('build/{}.zip'.format(action_name), 'w')
+        shutil.copyfile(action_path, 'build/{}/__main__.py'.format(action_name))
         for dependency in dependencies:
-            zipped_code.write(dependency)
-        zipped_code.close()
+            if dependency != dependencies[0] and dependency != "build/{}/virtualenv".format(action_name):
+                shutil.copyfile(dependency, 'build/{}/{}'.format(action_name, dependency.split('/')[-1]))
+        shutil.make_archive('build/{}'.format(action_name), 'zip', 'build/{}/'.format(action_name))
         with open('build/{}.zip'.format(action_name), 'rb') as zipped_code:
             bytes_zipped_code = zipped_code.read()
         encoded_zipped_code = base64.b64encode(bytes_zipped_code)
@@ -123,10 +124,8 @@ def openwhisk_deployment():
             print('Deployed : {} \n'.format(action_name))
         else:
             print(response)
-        os.remove('__main__.py')
         os.remove('build/{0}.zip'.format(action_name))
-        if 'requirements' in action_config.keys():
-            shutil.rmtree('build/virtualenv')
+        shutil.rmtree("build/{}".format(action_name))
 
 
 def openwhisk_clear():

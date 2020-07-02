@@ -37,11 +37,15 @@ actions:
     kind: python:3
     web: true
     dependencies: [src/utils/someutil.py]
-
+    
   requirements-action:
     requirements: src/testfunctions/requirements-test/requirements.txt
     main: src/testfunctions/requirements-test/requirements-test.py
     kind: python:3
+    timeout: 100000
+    memory: 256
+    logs: 1
+    concurrency: 1
 
 sequences:
   update:

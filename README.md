@@ -69,9 +69,6 @@ Run `deployless --run <action_name>` to invoke a action and get its results
 Run `deployless --clear` to delete all actions that are configured in your `deployless.yaml` 
 
 ### Missing Features
-- actions
-    - timeout configuration
-    - memory configuration
 - platform
     - use wsk file if api-host and auth are not provided
 - framework

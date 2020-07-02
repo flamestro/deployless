@@ -52,6 +52,17 @@ def openwhisk_deployment():
         dependencies = ['build/__main__.py']
         attributes = []
         web = False
+
+        # Action Limits
+        # timeout in milliseconds (default: 60000)
+        timeout = 60000
+        # memory in megabytes (default: 256)
+        memory = 256
+        # log size in megabytes (default: 10)
+        logs = 10
+        # number of concurrent activations allowed (default: 1)
+        concurrency = 1
+
         print("Started deployment of " + action_name)
 
         # -------------- READ ATTRIBUTES --------------
@@ -69,6 +80,35 @@ def openwhisk_deployment():
         if 'dependencies' in action_config.keys():
             for dependency in action_config['dependencies']:
                 dependencies.append(dependency)
+
+        # Check Action Limits
+        if 'timeout' in action_config.keys():
+            try:
+                int(action_config['timeout'])
+                timeout = action_config['timeout']
+            except:
+                print("Timeout config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'memory' in action_config.keys():
+            try:
+                int(action_config['memory'])
+                memory = action_config['memory']
+            except:
+                print("Memory config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'logs' in action_config.keys():
+            try:
+                int(action_config['logs'])
+                logs = action_config['logs']
+            except:
+                print("Logs config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'concurrency' in action_config.keys():
+            try:
+                int(action_config['concurrency'])
+                concurrency = action_config['concurrency']
+            except:
+                print("Concurrency config for {} is not an integer, falling back to default".format(action_name))
 
         # If Action has Custom Requirements Create a Virtual Environment
         if 'requirements' in action_config.keys():
@@ -116,19 +156,36 @@ def openwhisk_deployment():
                                         {"key": "web-export", "value": web},
                                         {"key": "raw-http", "value": False},
                                         {"key": "final", "value": True}
-                                    ]
+                                    ],
+                                    "limits": {
+                                        "timeout": timeout,
+                                        "memory": memory,
+                                        "logs": logs,
+                                        "concurrency": concurrency
+                                    }
                                 })
         if response.status_code == 200:
             print('Deployed : {} \n'.format(action_name))
         else:
-            print(response)
+            print(response.json())
         os.remove('build/{0}.zip'.format(action_name))
         shutil.rmtree("build/{}".format(action_name))
+
     for sequence_name in sequences.keys():
         attributes = []
         sequence_config = sequences[sequence_name]
         web = False
         print("Started deployment of Sequence: " + sequence_name)
+
+        # Sequence Limits
+        # timeout in milliseconds (default: 60000)
+        timeout = 60000
+        # memory in megabytes (default: 256)
+        memory = 256
+        # log size in megabytes (default: 10)
+        logs = 10
+        # number of concurrent activations allowed (default: 1)
+        concurrency = 1
 
         # -------------- READ ATTRIBUTES --------------
         # Add Ignore Certs Attribute if specified in provider
@@ -140,6 +197,37 @@ def openwhisk_deployment():
         if 'web' in sequence_config.keys():
             if sequence_config['web'] is True:
                 web = True
+
+        # Check Sequence Limits
+        if 'timeout' in sequence_config.keys():
+            try:
+                int(sequence_config['timeout'])
+                timeout = sequence_config['timeout']
+            except:
+                print("Timeout config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'memory' in sequence_config.keys():
+            try:
+                int(sequence_config['memory'])
+                memory = sequence_config['memory']
+            except:
+                print("Memory config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'logs' in sequence_config.keys():
+            try:
+                int(sequence_config['logs'])
+                logs = sequence_config['logs']
+            except:
+                print("Logs config for {} is not an integer, falling back to default".format(action_name))
+
+        if 'concurrency' in sequence_config.keys():
+            try:
+                int(sequence_config['concurrency'])
+                concurrency = sequence_config['concurrency']
+            except:
+                print(
+                    "Concurrency config for {} is not an integer, falling back to default".format(action_name))
+
         print("Components are : " + str(sequence_config["components"]))
         requests.put(local_url.format(api_host, sequence_name),
                      auth=(username, password),
@@ -157,7 +245,13 @@ def openwhisk_deployment():
                              {"key": "web-export", "value": web},
                              {"key": "raw-http", "value": False},
                              {"key": "final", "value": True}
-                         ]
+                         ],
+                         "limits": {
+                             "timeout": timeout,
+                             "memory": memory,
+                             "logs": logs,
+                             "concurrency": concurrency
+                         }
                      })
 
 

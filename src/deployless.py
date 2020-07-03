@@ -265,6 +265,11 @@ def openwhisk_clear():
                                    auth=(username, password),
                                    verify=not ('-i' in attributes))
         print('DELETED - action: {} status: {}'.format(action_name, response.status_code))
+    for sequence_name in sequences.keys():
+        response = requests.delete(local_url.format(api_host, sequence_name),
+                                   auth=(username, password),
+                                   verify=not ('-i' in attributes))
+        print('DELETED - action: {} status: {}'.format(sequence_name, response.status_code))
 
 
 def openwhisk_run(action_name):

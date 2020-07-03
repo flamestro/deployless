@@ -78,7 +78,3 @@ Run `deployless --clear` to delete all actions that are configured in your `depl
 - framework
     - functionality to create projects using `--init`
 - tests :) 
-
-### Known issues
-- sometimes the actions are deployed but are not returning binaries (edge case)
-    - here you can just deploy again and it should work 

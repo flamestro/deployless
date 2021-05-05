@@ -13,9 +13,9 @@ import base64
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CLoader as Loader, CDumper as Dumper, dump
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import Loader, Dumper, dump
 
 # OpenWhisk Url's
 local_url = 'https://{0}/api/v1/namespaces/_/actions/{1}'
@@ -23,16 +23,22 @@ web_url = 'https://{0}/api/v1/web/_/default/{1}'
 log_url = 'https://{0}/api/v1/namespaces/_/activations/{1}/logs'
 activations_url = 'https://{0}/api/v1/namespaces/_/activations'
 
+project_initialized = True
+
 # Read User Config
-with open('deployless.yaml', "r") as f:
-    raw = f.read()
-    deploy_config = load(raw, Loader=Loader)
-    actions = deploy_config['actions']
-    sequences = deploy_config.get('sequences', {})
-    provider = deploy_config['provider']
-    username = provider['auth'].split(':')[0]
-    password = provider['auth'].split(':')[1]
-    api_host = provider['api-host']
+try:
+    with open('deployless.yaml', "r") as f:
+        raw = f.read()
+        deploy_config = load(raw, Loader=Loader)
+        actions = deploy_config['actions']
+        sequences = deploy_config.get('sequences', {})
+        provider = deploy_config['provider']
+        username = provider['auth'].split(':')[0]
+        password = provider['auth'].split(':')[1]
+        api_host = provider['api-host']
+except:
+    print('Could not find a deployless.yaml file. Please initialize project first with "deployless --init my_project"')
+    project_initialized = False
 
 
 def list_to_line(list_param):
@@ -312,10 +318,34 @@ def openwhisk_logs(action_name):
     print(response.json()['logs'])
 
 
+def init_deployless_project(project_name):
+    open("deployless.yaml", "x")
+    data = {'service_name': project_name,
+            'provider': {
+                'platform': 'openwhisk',
+                'ignore-certs': 'true',
+                'api-host': '172.17.0.3:31001',
+                'auth': '23bc46b1-71f6-4ed5-8c54-816aa4f8c502:123zO3xZCLrMN6v2BKK1dXYFpXlPkccOFqm12CdAsMgRU4VrNZ9lyGVCGuMDGIwP',
+            },
+            'actions': {
+                'hello-world':{
+                    'main': 'src/testfunctions/hello-world/hello-world.py',
+                    'kind': 'python:3',
+                    'web': 'true',
+                    'dependencies': '[src/utils/someutil.py]',
+                }
+            }
+            }
+    with open('deployless.yaml', 'w') as conf_file:
+        dump(data, conf_file)
+
+
 def main():
     # OpenWhisk specific behaviour
-    if deploy_config['provider']['platform'] == 'openwhisk':
-        arguments = sys.argv[1:]
+    arguments = sys.argv[1:]
+    if '--init' in arguments:
+        init_deployless_project(arguments[arguments.index('--init') + 1])
+    elif project_initialized and deploy_config['provider']['platform'] == 'openwhisk':
         if '--clear' in arguments:
             openwhisk_clear()
         elif '--run' in arguments:
